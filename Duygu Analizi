@@ -55,12 +55,13 @@ glimpse(gittigidiyor)
 verim_gittigidiyor=data.frame(line=1:3471,gittigidiyor)
 gittigidiyor$word=sapply(gittigidiyor$word,tolower)
 
-# Unnest Token (Verinin kelimelere ayirilmasi)
+# Unnest Token (Verinin Kelimelere Ayrilmasi)
 gittigidiyor_temiz= gittigidiyor %>% 
   unnest_tokens(word, word) %>%               
   anti_join(stop_words) %>%                        
-  filter(nchar(word)>3) 
-gittigidiyor_kelime_sayisi=gittigidiyor_temiz %>%
+  filter(nchar(word)>3)                                 # 3 HARFTEN AZ OLANLARI KALDIRMA
+
+gittigidiyor_kelime_sayisi=gittigidiyor_temiz %>%       # KELİME SAYMA VE SIRALAMA ISLEMI 
   count(word,sort=TRUE)
 
 # WordCloud Olusturma
@@ -83,7 +84,7 @@ gittigidiyor_duygu_nrc <- gittigidiyor_temiz %>%
 gittigidiyor_duygu_afinn <- gittigidiyor_temiz %>%
   inner_join(get_sentiments("afinn"))
 
-gittigidiyor_duygu_bing %>%
+gittigidiyor_duygu_bing %>%    
   group_by(sentiment) %>%
   summarise(yeni_kelime_Sayisi=n()) %>%
   ungroup() %>%
