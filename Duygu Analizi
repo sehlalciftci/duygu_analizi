@@ -66,20 +66,20 @@ gittigidiyor_kelime_sayisi=gittigidiyor_temiz %>%
 # WordCloud Olusturma
 wordcloud2(gittigidiyor_kelime_sayisi[1:200, ],size=1)
 
-# DUYGU ANALIZI ADIMLARI
+# Duygu Analizi Kutuphaneleri
 get_sentiments("bing")
 get_sentiments("afinn")
 get_sentiments("nrc")
 
-# Bing sozlugunun veriye dahil edilmesi 
+# Bing Sozlugu
 gittigidiyor_duygu_bing <- gittigidiyor_temiz %>%
   inner_join(get_sentiments("bing"))
 
-# Nrc sozlugunun veriye dahil edilmesi
+# Nrc Sozlugu
 gittigidiyor_duygu_nrc <- gittigidiyor_temiz %>%
   inner_join(get_sentiments("nrc"))
 
-#afinn sozlugunun veriye dahil edilmesi
+# Afinn Sozlugu
 gittigidiyor_duygu_afinn <- gittigidiyor_temiz %>%
   inner_join(get_sentiments("afinn"))
 
