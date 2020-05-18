@@ -1,0 +1,117 @@
+# Metin Veri Setinin R'a Yuklenmesi
+library(readxl)
+gitti_verim_ing <- read_excel("C:/Users/sehla/Desktop/ing_gittigidiyor/gitti_verim_ing.xlsx")
+View(gitti_verim_ing)
+
+# Kutuphanelerin Yuklenmesi
+install.packages("tm")
+install.packages("SnowballC")
+install.packages("wordcloud2")
+install.packages("RColorBrewer")
+install.packages("tidytext")
+install.packages("textdata")
+install.packages("dplyr")
+install.packages("stringr")
+install.packages("SentimentAnalysis")
+install.packages("sentimentr")
+install.packages("syuzhet")
+install.packages("ggplot2")
+
+# Kutuphanelerin Aktif Hale Getirilmesi
+library("tm")
+library("SnowballC")
+library("wordcloud2")
+library("RColorBrewer")
+library("tidytext")
+library("textdata")
+library("dplyr")
+library("stringr")
+library("SentimentAnalysis")
+library("sentimentr")
+library("syuzhet")
+library("ggplot2")
+
+# Sayilarin Kaldirilmasi 
+temiz_veri=sapply(gitti_verim_ing, removeNumbers)
+
+# Harflerin Kucultulmesi
+temiz_veri1=sapply(temiz_veri, tolower)
+
+# Bosluklarin Silinmesi
+temiz_veri2=sapply(temiz_veri1, stripWhitespace) 
+
+# Noktalama İsaretlerinin Kaldirilmasi
+temiz_veri3 = sapply(temiz_veri2, removePunctuation)
+
+# Stopword Kelimelerin Listelenmesi
+stopwords()
+
+# Stopword Kaldirma
+temiz_veri_son=sapply(temiz_veri3, removeWords, stopwords("english"))
+
+# Data Frame Olusturma ve Verinin Genel Gorunumunu İnceleme 
+gittigidiyor<- gitti_verim_ing
+glimpse(gittigidiyor)
+verim_gittigidiyor=data.frame(line=1:3471,gittigidiyor)
+gittigidiyor$word=sapply(gittigidiyor$word,tolower)
+
+# Unnest Token (Verinin kelimelere ayirilmasi)
+gittigidiyor_temiz= gittigidiyor %>% 
+  unnest_tokens(word, word) %>%               
+  anti_join(stop_words) %>%                        
+  filter(nchar(word)>3) 
+gittigidiyor_kelime_sayisi=gittigidiyor_temiz %>%
+  count(word,sort=TRUE)
+
+# WordCloud Olusturma
+wordcloud2(gittigidiyor_kelime_sayisi[1:200, ],size=1)
+
+# DUYGU ANALIZI ADIMLARI
+get_sentiments("bing")
+get_sentiments("afinn")
+get_sentiments("nrc")
+
+# Bing sozlugunun veriye dahil edilmesi 
+gittigidiyor_duygu_bing <- gittigidiyor_temiz %>%
+  inner_join(get_sentiments("bing"))
+
+# Nrc sozlugunun veriye dahil edilmesi
+gittigidiyor_duygu_nrc <- gittigidiyor_temiz %>%
+  inner_join(get_sentiments("nrc"))
+
+#afinn sozlugunun veriye dahil edilmesi
+gittigidiyor_duygu_afinn <- gittigidiyor_temiz %>%
+  inner_join(get_sentiments("afinn"))
+
+gittigidiyor_duygu_bing %>%
+  group_by(sentiment) %>%
+  summarise(yeni_kelime_Sayisi=n()) %>%
+  ungroup() %>%
+  mutate(sentiment=reorder(sentiment, yeni_kelime_Sayisi)) %>%
+  ggplot(aes(x=sentiment, y=yeni_kelime_Sayisi, fill= yeni_kelime_Sayisi)) + geom_col() +
+  geom_text(aes(label=yeni_kelime_Sayisi), vjust=1, color="white", size=3) +
+  guides (fill=FALSE) +
+  ggtitle("bing_duygu_dagilimi")  
+
+gittigidiyor_duygu_afinn %>%
+  group_by(value) %>%
+  summarise(yeni_kelime_Sayisi=n()) %>%
+  ungroup() %>%
+  mutate(value=reorder(value, yeni_kelime_Sayisi)) %>%
+  ggplot(aes(x=value, y=yeni_kelime_Sayisi, fill= yeni_kelime_Sayisi)) + geom_col() +
+  geom_col() +
+  geom_text(aes(label=yeni_kelime_Sayisi), vjust=-0.8, color="black", size=3) +
+  guides (fill=FALSE) +
+  ggtitle("afinn_duygu_dagilimi")
+
+gittigidiyor_duygu_nrc %>%
+  group_by( sentiment) %>%
+  summarise(yeni_kelime_Sayisi=n()) %>%
+  ungroup() %>%
+  mutate(value=reorder( sentiment, yeni_kelime_Sayisi)) %>%
+  ggplot(aes(x= sentiment, y=yeni_kelime_Sayisi, fill= yeni_kelime_Sayisi)) + geom_col() +
+  geom_col() +
+  geom_text(aes(label=yeni_kelime_Sayisi), vjust=-0.9, color="red", size=3) +
+  guides (fill=FALSE) +
+  ggtitle("nrc_duygu_dagilimi") 
+  
